@@ -102,6 +102,10 @@ func startRouter(changeNotifier *broker.Broker) {
 	v1.POST("/notices/:id", handler.SaveNotice, auth.RequireAdmin)
 	v1.DELETE("/notices/:id", handler.DeleteNotice, auth.RequireAdmin)
 
+	v1.GET("/projects", handler.GetProjects, auth.RequireAdmin)
+	v1.POST("/projects/:id", handler.SaveProject, auth.RequireAdmin)
+	v1.DELETE("/projects/:id", handler.DeleteProject, auth.RequireAdmin)
+
 	v1.GET("/apps", handler.GetApps)
 	v1.POST("/apps/filter", handler.FilterApps)
 	v1.GET("/apps/:app", handler.GetCachedApp)
@@ -129,6 +133,7 @@ func startRouter(changeNotifier *broker.Broker) {
 	ui.Static("/:app/instance/:instance", "vue/pages/instance")
 	ui.Static("/users", "vue/pages/users")
 	ui.Static("/notices", "vue/pages/notices")
+	ui.Static("/projects", "vue/pages/projects")
 
 	e.Static("/*", "vue")
 

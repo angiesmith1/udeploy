@@ -10,6 +10,8 @@ includeTenplates().then(() => {
             config: { consoleLink: "" },
 
             apps: [],
+            projects: [],
+
             modal: {
                 deploy: {show: false},
                 scale: {show: false, action: ""},
@@ -412,10 +414,13 @@ includeTenplates().then(() => {
                     if (data.message) {
                         return Promise.reject(new Error(data.message))
                     } 
+
+                    that.projects = that.groupByProject(data)
                     
                     that.apps = data;
                     that.updateTime();
                 }).catch(function(e) {
+
                     that.alerts.push({ error: e });                    
                 }).finally(function() {
                     that.isLoading = false;
@@ -424,6 +429,39 @@ includeTenplates().then(() => {
                         that.jumpTo();
                     }
                 }); 
+            },
+            groupByProject: function(apps) {
+                let projects = {};
+
+                const noProjectId = "000000000000000000000000";
+
+                for (let x=0; x < apps.length; x++) {
+                    if (apps[x].project.id == noProjectId) {
+                        projects[apps[x].project.id + "-" + apps[x].id] = {
+                            name: apps[x].name,
+                            apps: [apps[x]],
+                        }
+                    } else if (apps[x].project.id in projects) {
+                        let p = projects[apps[x].project.id];
+
+                        p.apps.push(apps[x]);
+                        
+                        projects[apps[x].project.id] = p;
+                    } else {
+                        projects[apps[x].project.id] = {
+                            name: apps[x].project.name,
+                            apps: [apps[x]],
+                            is: true
+                        }
+                    }
+                }
+               
+                let list = [];
+                for (let [key, value] of Object.entries(projects)) {
+                    list.push(value)
+                }
+
+                return list
             },
             getVersion: function() {
                 let that = this

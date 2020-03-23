@@ -6,6 +6,7 @@ import (
 
 	"github.com/turnerlabs/udeploy/component/cfg"
 	"github.com/turnerlabs/udeploy/component/integration/aws/lambda"
+	"github.com/turnerlabs/udeploy/component/project"
 
 	"github.com/turnerlabs/udeploy/component/session"
 
@@ -38,7 +39,12 @@ func GetApp(c echo.Context) error {
 
 	apps[0].Instances = instances
 
-	return c.JSON(http.StatusOK, apps[0].ToView(usr))
+	project, err := project.Get(ctx, apps[0].ProjectID)
+	if err != nil {
+		return err
+	}
+
+	return c.JSON(http.StatusOK, apps[0].ToView(usr, project))
 }
 
 // FilterApps ..
@@ -53,6 +59,11 @@ func FilterApps(c echo.Context) error {
 
 	views := []app.AppView{}
 
+	projects, err := project.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+
 	for name := range usr.Apps {
 
 		if err := cache.EnsureApp(ctx, name); err != nil {
@@ -62,8 +73,10 @@ func FilterApps(c echo.Context) error {
 
 		application, _ := cache.Apps.Get(name)
 
-		if application.Matches(filter) {
-			views = append(views, application.ToView(usr))
+		p, _ := project.FindByID(application.ProjectID, projects)
+
+		if application.Matches(filter, p) {
+			views = append(views, application.ToView(usr, p))
 		}
 	}
 
@@ -89,6 +102,11 @@ func GetApps(c echo.Context) error {
 
 	views := []app.AppView{}
 
+	projects, err := project.GetAll(ctx)
+	if err != nil {
+		return err
+	}
+
 	for _, name := range appNames {
 
 		if err := cache.EnsureApp(ctx, name); err != nil {
@@ -98,7 +116,9 @@ func GetApps(c echo.Context) error {
 
 		application, _ := cache.Apps.Get(name)
 
-		views = append(views, application.ToView(usr))
+		p, _ := project.FindByID(application.ProjectID, projects)
+
+		views = append(views, application.ToView(usr, p))
 	}
 
 	return c.JSON(http.StatusOK, views)

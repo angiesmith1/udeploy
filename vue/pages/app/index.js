@@ -19,6 +19,7 @@ includeTenplates().then(() => {
             alerts: [],
 
             app: [],
+            projects: [],
 
             modal: {
                 confirm:  {
@@ -75,6 +76,10 @@ includeTenplates().then(() => {
             that.isLoading = true;
 
             this.getConfig();
+
+            this.getProjects().then(function(projects) {
+                that.projects = projects;
+            });
 
             this.getUser().then(function(user) {
                 that.user = user
@@ -325,6 +330,21 @@ includeTenplates().then(() => {
                 let that = this
 
                 return fetch('/v1/user')
+                .then(function(response) {
+                    return response.json()
+                })
+                .then(function(data) {
+                    if (data.message) {
+                        return Promise.reject(new Error(data.message))
+                    }
+
+                    return Promise.resolve(data);
+                })
+            },
+            getProjects: function() {
+                let that = this
+
+                return fetch('/v1/projects')
                 .then(function(response) {
                     return response.json()
                 })
